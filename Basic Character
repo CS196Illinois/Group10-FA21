@@ -17,6 +17,9 @@ from pygame.sprite import spritecollide
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
+PLAYER_ONE_START_X = 0
+PLAYER_ONE_START_Y = 0
+
 class Player(pygame.sprite.Sprite):
 
     def __init__(self):
@@ -24,22 +27,68 @@ class Player(pygame.sprite.Sprite):
         self.surf = pygame.Surface((75,25))
         self.surf.set_colorkey((255, 255, 255), RLEACCEL)
         self.rect = self.surf.get_rect()
-        self.dy = 0
-        self.jumpAvailable = True
+        self.dx, self.dy = 0, 0
+        self.touchingPlatform = False
+        self.applyFriction = False
+                
 
-    def update(self, pressed_keys):
-        if pressed_keys[K_UP] and self.jumpAvailable == True:
-            self.dy = -10
-            #move_up_sound.play()
+    def update(self, pressed_keys, possibleCollisionSprites):
+        self.dx = 0
+        if pressed_keys[K_UP] and self.touchingPlatform:
+            self.dy = -15
         if pressed_keys[K_DOWN]:
-            self.rect.move_ip(0, 5)
-            #move_down_sound.play()
+            #debug float, replace with groundpound later
+            self.dy = 5
         if pressed_keys[K_LEFT]:
-            self.rect.move_ip(-5, 0)
+            self.dx = -5
         if pressed_keys[K_RIGHT]:
-            self.rect.move_ip(5, 0)
+            self.dx = 5
         
-        self.rect.move_ip(0, self.dy)
+        self.dy += 1
+        self.oldrect = self.rect.copy()
+        #steps forward one tick of movement and sees if there is a collision then
+        self.rect.move_ip(self.dx,self.dy)
+        self.collidedList = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
+        self.touchingPlatform = False
+
+        #if no collisions, you're done, just return
+        if not self.collidedList:
+            return
+        
+        #if there are collisions, you need to push the player out of those future collisions now
+        #this might have buggy results if multiple platforms are collided or have contradicting pushouts
+        for collidedSprite in self.collidedList:
+            #check if player is directly above or below other sprite
+            #we use oldrect for comparison to prevent pushing into the sides causing the square to jump to the top
+            if collidedSprite.rect.left < self.oldrect.right and collidedSprite.rect.right > self.oldrect.left:
+
+                #if player is above collided sprite
+                if collidedSprite.rect.top < self.rect.bottom and collidedSprite.rect.bottom > self.rect.bottom:
+                    self.rect.move_ip(0, collidedSprite.rect.top - self.rect.bottom) #push out of platform
+                    self.dy = 0
+                    self.touchingPlatform = True
+            
+                #if player is below collided sprite
+                elif collidedSprite.rect.bottom > self.rect.top and collidedSprite.rect.top < self.rect.top:
+                    self.rect.move_ip(0, collidedSprite.rect.bottom - self.rect.top)
+                    self.dy = 0
+            
+            #check if player is mainly left or right of other sprite
+            if collidedSprite.rect.top < self.rect.bottom and collidedSprite.rect.bottom > self.rect.top:
+                
+                #if player is left of collided sprite
+                if collidedSprite.rect.left < self.rect.right and collidedSprite.rect.left > self.rect.left:
+                    self.rect.move_ip(collidedSprite.rect.left - self.rect.right, 0)
+                    self.dx = 0
+                
+                #if player is right of collided sprite
+                elif collidedSprite.rect.right > self.rect.left and collidedSprite.rect.right < self.rect.right:
+                    self.rect.move_ip(collidedSprite.rect.right - self.rect.left, 0)
+                    self.dx = 0
+                
+                
+
+                
 
         if self.rect.left < 0:
             self.rect.left = 0
@@ -50,15 +99,14 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
         
-        self.dy += 1
 
 class Platform(pygame.sprite.Sprite):
-   def __init__(self):
+   def __init__(self, xPos, yPos):
         super(Platform, self).__init__()
-        self.surf = pygame.Surface((1000,6))
+        self.surf = pygame.Surface((500,40))
         self.surf.set_colorkey((0,0,1), RLEACCEL)
         self.rect = self.surf.get_rect(
-            center = (0,random.randint(0,SCREEN_HEIGHT))
+            center = (xPos, yPos)
         )
 
 pygame.init()
@@ -70,8 +118,8 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
 player = Player()
-platform = Platform()
-platform2 = Platform()
+platform = Platform(0, 150)
+platform2 = Platform(200, 200)
 
 all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
@@ -103,7 +151,8 @@ while running:
 
 
     pressed_keys = pygame.key.get_pressed()
-    player.update(pressed_keys)
+
+    player.update(pressed_keys, platforms)
 
     screen.fill((206, 250, 135))
 
