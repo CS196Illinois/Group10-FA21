@@ -29,7 +29,6 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
-        self.applyFriction = False
                 
 
     def update(self, pressed_keys, possibleCollisionSprites):
@@ -50,7 +49,9 @@ class Player(pygame.sprite.Sprite):
         #steps forward one tick of movement and sees if there is a collision then
         self.rect.move_ip(self.dx,self.dy)
         self.collidedList = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
+        self.collidedList.remove(self) #prevent the player from colliding with itself
         self.touchingPlatform = False
+
 
         #if no collisions, you're done, just return
         if not self.collidedList:
@@ -123,14 +124,16 @@ platform = Platform(0, 150)
 platform2 = Platform(200, 200)
 
 all_sprites = pygame.sprite.Group()
-platforms = pygame.sprite.Group()
-
-platforms.add(platform)
-platforms.add(platform2)
-
 all_sprites.add(player)
 all_sprites.add(platform)
 all_sprites.add(platform2)
+
+#solid means that players cannot overlap that object (players should be solid to each other)
+solid_sprites = pygame.sprite.Group()
+solid_sprites.add(player)
+solid_sprites.add(platform)
+solid_sprites.add(platform2)
+
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
@@ -153,19 +156,13 @@ while running:
 
     pressed_keys = pygame.key.get_pressed()
 
-    player.update(pressed_keys, platforms)
+    player.update(pressed_keys, solid_sprites)
 
     screen.fill((206, 250, 135))
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
     
-
-    if pygame.sprite.spritecollide(player, platforms, False):
-        player.dy = 0
-        player.jumpAvailable = True
-    else:
-        player.jumpAvailable = False
 
     pygame.display.flip()
 
