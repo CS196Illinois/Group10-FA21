@@ -39,6 +39,7 @@ class Player(pygame.sprite.Sprite):
         if pressed_keys[K_DOWN]:
             #debug float, replace with groundpound later
             self.dy = 5
+            
         if pressed_keys[K_LEFT]:
             self.dx = -5
         if pressed_keys[K_RIGHT]:
