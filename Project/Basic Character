@@ -32,17 +32,24 @@ class Player(pygame.sprite.Sprite):
                 
 
     def update(self, pressed_keys, possibleCollisionSprites):
-        self.dx = 0
+        if self.touchingPlatform:
+            self.dx = 0
+
         if pressed_keys[K_UP] and self.touchingPlatform:
             self.dy = -15
         if pressed_keys[K_DOWN]:
             #debug float, replace with groundpound later
             self.dy = 5
-            
         if pressed_keys[K_LEFT]:
-            self.dx = -5
+            if self.touchingPlatform:
+                self.dx = -5
+            elif self.dx > -5:
+                self.dx -= .5
         if pressed_keys[K_RIGHT]:
-            self.dx = 5
+            if self.touchingPlatform:
+                self.dx = 5
+            elif self.dx < 5:
+                self.dx += .5
         
         self.dy += 1
         self.oldrect = self.rect.copy()
@@ -103,14 +110,20 @@ class Player(pygame.sprite.Sprite):
         
 
 class Platform(pygame.sprite.Sprite):
-   def __init__(self, xPos, yPos):
+   def __init__(self, xPos, yPos, xSize, ySize):
         super(Platform, self).__init__()
-        self.surf = pygame.Surface((500,40))
+        self.surf = pygame.Surface((xSize,ySize))
         self.surf.set_colorkey((0,0,1), RLEACCEL)
         self.rect = self.surf.get_rect(
             center = (xPos, yPos)
         )
 
+# helper function that creates a new platform and adds it to the needed sprite groups
+def newPlatform(xPos, yPos, xSize, ySize):
+    myPlatform = Platform(xPos, yPos, xSize, ySize)
+    solid_sprites.add(myPlatform)
+    all_sprites.add(myPlatform)
+    
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -120,20 +133,19 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
 player = Player()
-platform = Platform(0, 150)
-platform2 = Platform(200, 200)
+
 
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
-all_sprites.add(platform)
-all_sprites.add(platform2)
+
 
 #solid means that players cannot overlap that object (players should be solid to each other)
 solid_sprites = pygame.sprite.Group()
 solid_sprites.add(player)
-solid_sprites.add(platform)
-solid_sprites.add(platform2)
 
+# (xpos, ypos, xsize, ysize): xpos, ypos represents coordinates of the center of the rectangle
+newPlatform(0, 150, 20, 20)
+newPlatform(200, 200, 20, 20)
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
@@ -158,7 +170,7 @@ while running:
 
     player.update(pressed_keys, solid_sprites)
 
-    screen.fill((206, 250, 135))
+    screen.fill((200, 200, 200))
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
