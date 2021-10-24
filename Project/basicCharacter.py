@@ -14,8 +14,8 @@ from pygame.locals import (
 )
 from pygame.sprite import spritecollide
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
 
 PLAYER_ONE_START_X = 0
 PLAYER_ONE_START_Y = 0
@@ -94,10 +94,10 @@ class Player(pygame.sprite.Sprite):
                 elif collidedSprite.rect.right > self.rect.left and collidedSprite.rect.right < self.rect.right:
                     self.rect.move_ip(collidedSprite.rect.right - self.rect.left, 0)
                     self.dx = 0
-                
-                
 
-                
+
+
+
 
         if self.rect.left < 0:
             self.rect.left = 0
@@ -144,8 +144,23 @@ solid_sprites = pygame.sprite.Group()
 solid_sprites.add(player)
 
 # (xpos, ypos, xsize, ysize): xpos, ypos represents coordinates of the center of the rectangle
-newPlatform(0, 150, 20, 20)
-newPlatform(200, 200, 20, 20)
+# normal rectangle platforms
+
+xSizeFactor = 150
+
+newPlatform(80, 200, xSizeFactor, 30)
+newPlatform(350, 100, xSizeFactor, 30)
+newPlatform(600, 300, xSizeFactor, 30)
+newPlatform(800, 550, xSizeFactor, 30)
+newPlatform(1150, 450, xSizeFactor, 30)
+
+# L-shaped platform #1
+newPlatform(175, 500, 150, 30)
+newPlatform(115, 475, 30, 70)
+
+# L-shaped platform #2
+newPlatform(925, 200, 150, 30)
+newPlatform(865, 225, 30, 70)
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
