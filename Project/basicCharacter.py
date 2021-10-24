@@ -24,8 +24,8 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.Surface((75,25))
-        self.surf.set_colorkey((255, 255, 255), RLEACCEL)
+        #self.surf = pygame.Surface((20,50))
+        self.surf = pygame.transform.scale(pygame.image.load("Project\playerSprite.png").convert(), (20,50))
         self.rect = self.surf.get_rect()
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
@@ -94,10 +94,6 @@ class Player(pygame.sprite.Sprite):
                 elif collidedSprite.rect.right > self.rect.left and collidedSprite.rect.right < self.rect.right:
                     self.rect.move_ip(collidedSprite.rect.right - self.rect.left, 0)
                     self.dx = 0
-                
-                
-
-                
 
         if self.rect.left < 0:
             self.rect.left = 0
@@ -113,10 +109,14 @@ class Platform(pygame.sprite.Sprite):
    def __init__(self, xPos, yPos, xSize, ySize):
         super(Platform, self).__init__()
         self.surf = pygame.Surface((xSize,ySize))
-        self.surf.set_colorkey((0,0,1), RLEACCEL)
+        self.surf.fill((0, 0, 0))
         self.rect = self.surf.get_rect(
             center = (xPos, yPos)
         )
+        
+        pygame.draw.rect(self.surf, (200, 200, 200), pygame.Rect(2, 2, self.rect.width - 4, self.rect.height - 4))
+        for i in range(5, self.rect.height - 2, 5):
+            pygame.draw.line(self.surf, (150, 150, 150), (2, i), (self.rect.width - 4, i))
 
 # helper function that creates a new platform and adds it to the needed sprite groups
 def newPlatform(xPos, yPos, xSize, ySize):
@@ -129,7 +129,6 @@ pygame.init()
 clock = pygame.time.Clock()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
 
 
 player = Player()
@@ -145,7 +144,7 @@ solid_sprites.add(player)
 
 # (xpos, ypos, xsize, ysize): xpos, ypos represents coordinates of the center of the rectangle
 newPlatform(0, 150, 20, 20)
-newPlatform(200, 200, 20, 20)
+newPlatform(200, 200, 400, 20)
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
@@ -170,7 +169,7 @@ while running:
 
     player.update(pressed_keys, solid_sprites)
 
-    screen.fill((200, 200, 200))
+    screen.fill((200, 0, 0))
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
