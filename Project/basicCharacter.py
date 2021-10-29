@@ -9,6 +9,7 @@ from pygame.locals import (
     K_LEFT,
     K_RIGHT,
     K_ESCAPE,
+    K_SPACE,
     KEYDOWN,
     QUIT,
 )
@@ -19,6 +20,8 @@ SCREEN_HEIGHT = 720
 
 PLAYER_ONE_START_X = 0
 PLAYER_ONE_START_Y = 0
+
+PLAYER_MOVE_SPEED = 8
 
 class Player(pygame.sprite.Sprite):
 
@@ -32,34 +35,44 @@ class Player(pygame.sprite.Sprite):
                 
 
     def update(self, pressed_keys, possibleCollisionSprites):
-        if self.touchingPlatform:
-            self.dx = 0
-
+        self.moving = False
         if pressed_keys[K_UP] and self.touchingPlatform:
-            self.dy = -15
+            self.dy = -20
         if pressed_keys[K_DOWN]:
             #debug float, replace with groundpound later
             self.dy = 5
         if pressed_keys[K_LEFT]:
-            if self.touchingPlatform:
-                self.dx = -5
-            elif self.dx > -5:
-                self.dx -= .5
+            self.moving = True
+            if self.dx > PLAYER_MOVE_SPEED * -1:
+                if self.touchingPlatform:
+                    self.dx -= 2
+                else:
+                    self.dx -= 1
         if pressed_keys[K_RIGHT]:
-            if self.touchingPlatform:
-                self.dx = 5
-            elif self.dx < 5:
-                self.dx += .5
-        
+            self.moving = True
+            if self.dx < PLAYER_MOVE_SPEED:
+                if self.touchingPlatform:
+                    self.dx += 2
+                else:
+                    self.dx += 1
+        #resets character position for demo
+        if pressed_keys[K_SPACE]:
+            self.dx = 0
+            self.dy = 0
+            self.rect.center = (0,0)
+        #deceleration/friction
+        if self.touchingPlatform and not self.moving:
+            self.dx = 0
+
         self.dy += 1
+
+        # cool collision detection below here
         self.oldrect = self.rect.copy()
         #steps forward one tick of movement and sees if there is a collision then
         self.rect.move_ip(self.dx,self.dy)
         self.collidedList = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
         self.collidedList.remove(self) #prevent the player from colliding with itself
         self.touchingPlatform = False
-
-
         #if no collisions, you're done, just return
         if not self.collidedList:
             return
@@ -115,7 +128,8 @@ class Platform(pygame.sprite.Sprite):
         self.surf = pygame.Surface((xSize,ySize))
         self.surf.set_colorkey((0,0,1), RLEACCEL)
         self.rect = self.surf.get_rect(
-            center = (xPos, yPos)
+            left = xPos,
+            top = yPos
         )
 
 # helper function that creates a new platform and adds it to the needed sprite groups
@@ -130,8 +144,6 @@ clock = pygame.time.Clock()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-
-
 player = Player()
 
 
@@ -143,24 +155,31 @@ all_sprites.add(player)
 solid_sprites = pygame.sprite.Group()
 solid_sprites.add(player)
 
-# (xpos, ypos, xsize, ysize): xpos, ypos represents coordinates of the center of the rectangle
-# normal rectangle platforms
+# (xpos, ypos, xsize, ysize): xpos, ypos represents coordinates of the top left corner
 
-xSizeFactor = 150
+# "Standard" width of platform
+pw = 50
 
-newPlatform(80, 200, xSizeFactor, 30)
-newPlatform(350, 100, xSizeFactor, 30)
-newPlatform(600, 300, xSizeFactor, 30)
-newPlatform(800, 550, xSizeFactor, 30)
-newPlatform(1150, 450, xSizeFactor, 30)
+# player 1 start location
+newPlatform(30, 300, pw * 2, pw)
 
-# L-shaped platform #1
-newPlatform(175, 500, 150, 30)
-newPlatform(115, 475, 30, 70)
+# player 2 start location
+newPlatform(SCREEN_WIDTH - 30 - (pw * 2), 300, pw * 2, pw)
 
-# L-shaped platform #2
-newPlatform(925, 200, 150, 30)
-newPlatform(865, 225, 30, 70)
+# flat platforms
+newPlatform(200, 120, pw * 4, pw)
+newPlatform(340, 270, pw * 5, pw)
+newPlatform(500, 440, pw * 4, pw)
+newPlatform(870, 540, pw * 4, pw)
+newPlatform(890, 360, pw * 2, pw)
+
+# L platform 1
+newPlatform(190, 500, pw, pw * 3)
+newPlatform(190, 500 + (pw * 2), pw * 4, pw)
+
+# L platform 2
+newPlatform(810, 140, pw, pw * 2)
+newPlatform(810 + pw, 140, pw * 3, pw)
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
