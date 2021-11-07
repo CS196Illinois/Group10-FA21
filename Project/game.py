@@ -1,4 +1,3 @@
-
 import pygame
 
 import random
@@ -13,6 +12,7 @@ from pygame.locals import (
     KEYDOWN,
     K_SPACE,
     QUIT,
+    Color,
     K_w,
     K_a,
     K_s,
@@ -33,7 +33,7 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.transform.scale(pygame.image.load("Project\playerSprite.png").convert(), (20,50))
+        self.surf = pygame.transform.scale(pygame.image.load("Project/playerSprite.png").convert(), (20,50))
         self.rect = self.surf.get_rect(center = (50,50))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
@@ -72,6 +72,8 @@ class Player(pygame.sprite.Sprite):
 
         
         self.dy += 1
+
+        self.collidedCharacter = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
 
         # cool collision detection below here
         self.oldrect = self.rect.copy()
@@ -130,7 +132,7 @@ class Player2(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player2, self).__init__()
-        self.surf = pygame.transform.scale(pygame.image.load("Project\playerSprite.png").convert(), (20,50))
+        self.surf = pygame.transform.scale(pygame.image.load("Project/playerSprite.png").convert(), (20,50))
         self.rect = self.surf.get_rect(center = (SCREEN_WIDTH-50,50))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
@@ -166,6 +168,9 @@ class Player2(pygame.sprite.Sprite):
         #deceleration/friction
         if self.touchingPlatform and not self.moving:
             self.dx = 0
+
+        for coin in pygame.sprite.spritecollide(self, coin_sprites, True, collided = None):
+            coin.kill()
 
         # cool collision detection below here
         self.dy += 1
@@ -224,19 +229,27 @@ class Player2(pygame.sprite.Sprite):
         elif self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
         
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, xPos, yPos):
+        super(Coin, self).__init__()
+        self.surf = pygame.Surface((50,50))
+        self.surf.set_colorkey((0,0,0))
+        self.rect = self.surf.get_rect(
+            left = xPos,
+            top = yPos
+        )
+        pygame.draw.circle(self.surf, (255,255,0), (25,25), 25)
+
 
 class Platform(pygame.sprite.Sprite):
    def __init__(self, xPos, yPos, xSize, ySize):
         super(Platform, self).__init__()
         self.surf = pygame.Surface((xSize,ySize))
-        self.surf.fill((87, 9, 0))
+        self.surf.set_colorkey((0,0,1), RLEACCEL)
         self.rect = self.surf.get_rect(
             left = xPos,
             top = yPos
         )
-        pygame.draw.rect(self.surf, (168, 17, 0), pygame.Rect(2, 2, self.rect.width - 4, self.rect.height - 4))
-        for i in range(8, self.rect.height - 2, 15):
-            pygame.draw.rect(self.surf, (87, 9, 0), pygame.Rect(2, i, self.rect.width - 4, 5))
 
 # helper function that creates a new platform and adds it to the needed sprite groups
 def newPlatform(xPos, yPos, xSize, ySize):
@@ -289,7 +302,12 @@ newPlatform(190, 500 + (pw * 2), pw * 4, pw)
 
 # L platform 2
 newPlatform(810, 140, pw, pw * 2)
-newPlatform(810, 140, pw * 4, pw)
+newPlatform(810 + pw, 140, pw * 3, pw)
+
+coinA = Coin(500,50)
+all_sprites.add(coinA)
+coin_sprites = pygame.sprite.Group()
+coin_sprites.add(coinA)
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
