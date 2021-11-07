@@ -33,7 +33,7 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.transform.scale(pygame.image.load("playerSprite.png").convert(), (20,50))
+        self.surf = pygame.transform.scale(pygame.image.load("Project\playerSprite.png").convert(), (20,50))
         self.rect = self.surf.get_rect(center = (50,50))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
@@ -130,7 +130,7 @@ class Player2(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player2, self).__init__()
-        self.surf = pygame.transform.scale(pygame.image.load("playerSprite.png").convert(), (20,50))
+        self.surf = pygame.transform.scale(pygame.image.load("Project\playerSprite.png").convert(), (20,50))
         self.rect = self.surf.get_rect(center = (SCREEN_WIDTH-50,50))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
@@ -229,11 +229,14 @@ class Platform(pygame.sprite.Sprite):
    def __init__(self, xPos, yPos, xSize, ySize):
         super(Platform, self).__init__()
         self.surf = pygame.Surface((xSize,ySize))
-        self.surf.set_colorkey((0,0,1), RLEACCEL)
+        self.surf.fill((87, 9, 0))
         self.rect = self.surf.get_rect(
             left = xPos,
             top = yPos
         )
+        pygame.draw.rect(self.surf, (168, 17, 0), pygame.Rect(2, 2, self.rect.width - 4, self.rect.height - 4))
+        for i in range(8, self.rect.height - 2, 15):
+            pygame.draw.rect(self.surf, (87, 9, 0), pygame.Rect(2, i, self.rect.width - 4, 5))
 
 # helper function that creates a new platform and adds it to the needed sprite groups
 def newPlatform(xPos, yPos, xSize, ySize):
@@ -286,7 +289,7 @@ newPlatform(190, 500 + (pw * 2), pw * 4, pw)
 
 # L platform 2
 newPlatform(810, 140, pw, pw * 2)
-newPlatform(810 + pw, 140, pw * 3, pw)
+newPlatform(810, 140, pw * 4, pw)
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
