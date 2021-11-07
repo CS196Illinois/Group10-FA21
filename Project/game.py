@@ -30,7 +30,7 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self, xPos, yPos, controlDict):
         super(Player, self).__init__()
-        self.surf = pygame.transform.scale(pygame.image.load("Project/playerSprite.png").convert(), (20,50))
+        self.surf = pygame.transform.scale(pygame.image.load("playerSprite.png").convert(), (20,50))
         self.rect = self.surf.get_rect(center = (xPos, yPos))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
@@ -213,8 +213,8 @@ newPlatform(190, 500, pw, pw * 3)
 newPlatform(190, 500 + (pw * 2), pw * 4, pw)
 
 # L platform 2
-newPlatform(810, 140, pw, pw * 2)
-newPlatform(810 + pw, 140, pw * 3, pw)
+newPlatform(810, 140 + pw, pw, pw * 1)
+newPlatform(810, 140, pw * 4, pw)
 
 # create Coin instances
 # this part of code is not elegent, but I do not know how to make it better...
