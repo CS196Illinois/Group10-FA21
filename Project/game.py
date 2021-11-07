@@ -37,11 +37,12 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect(center = (50,50))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
+        self.score = 0
                 
 
     def update(self, pressed_keys, possibleCollisionSprites):
         self.moving = False
-
+        
         if pressed_keys[K_UP] and self.touchingPlatform:
             self.dy = -20
         if pressed_keys[K_DOWN]:
@@ -66,10 +67,17 @@ class Player(pygame.sprite.Sprite):
             self.dx = 0
             self.dy = 0
             self.rect.center = (0,0)
+            self.score = 0
+            killCoin()
+            AddCoin()
         #deceleration/friction
         if self.touchingPlatform and not self.moving:
             self.dx = 0
 
+        for coin in pygame.sprite.spritecollide(self, coin_sprites, True, collided = None):
+            self.score += 1
+            coin.kill()
+            print(self.score)
         
         self.dy += 1
 
@@ -136,6 +144,7 @@ class Player2(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect(center = (SCREEN_WIDTH-50,50))
         self.dx, self.dy = 0, 0
         self.touchingPlatform = False
+        self.score = 0
                 
 
     def update(self, pressed_keys, possibleCollisionSprites):
@@ -165,12 +174,15 @@ class Player2(pygame.sprite.Sprite):
             self.dx = 0
             self.dy = 0
             self.rect.center = (0,0)
+            self.score = 0
         #deceleration/friction
         if self.touchingPlatform and not self.moving:
             self.dx = 0
 
         for coin in pygame.sprite.spritecollide(self, coin_sprites, True, collided = None):
+            self.score += 1
             coin.kill()
+            print(self.score)
 
         # cool collision detection below here
         self.dy += 1
@@ -238,7 +250,7 @@ class Coin(pygame.sprite.Sprite):
             left = xPos,
             top = yPos
         )
-        pygame.draw.circle(self.surf, (255,255,0), (25,25), 25)
+        pygame.draw.circle(self.surf, (255,255,0), (25,25), 15)
 
 
 class Platform(pygame.sprite.Sprite):
@@ -304,10 +316,83 @@ newPlatform(190, 500 + (pw * 2), pw * 4, pw)
 newPlatform(810, 140, pw, pw * 2)
 newPlatform(810 + pw, 140, pw * 3, pw)
 
-coinA = Coin(500,50)
-all_sprites.add(coinA)
+# create Coin instances
+# this part of code is not elegent, but I do not know how to make it better...
 coin_sprites = pygame.sprite.Group()
-coin_sprites.add(coinA)
+def AddCoin():
+    coin1 = Coin(190,460)
+    all_sprites.add(coin1)
+    coin2 = Coin(275,80)
+    all_sprites.add(coin2)
+    coin3 = Coin(335,80)
+    all_sprites.add(coin3)
+    coin4 = Coin(215,80)
+    all_sprites.add(coin4)
+    coin5 = Coin(410,230)
+    all_sprites.add(coin5)
+    coin6 = Coin(470,230)
+    all_sprites.add(coin6)
+    coin7 = Coin(530,230)
+    all_sprites.add(coin7)
+    coin8 = Coin(350,230)
+    all_sprites.add(coin8)
+    coin9 = Coin(885,320)
+    all_sprites.add(coin9)
+    coin10 = Coin(945,320)
+    all_sprites.add(coin10)
+    coin11 = Coin(575,400)
+    all_sprites.add(coin11)
+    coin12 = Coin(515,400)
+    all_sprites.add(coin12)
+    coin13 = Coin(635,400)
+    all_sprites.add(coin13)
+    coin14 = Coin(885,500)
+    all_sprites.add(coin14)
+    coin15 = Coin(945,500)
+    all_sprites.add(coin15)
+    coin16 = Coin(1005,500)
+    all_sprites.add(coin16)
+    # L shape
+    coin17 = Coin(250,560)
+    all_sprites.add(coin17)
+    coin18 = Coin(310,560)
+    all_sprites.add(coin18)
+    coin19 = Coin(890,100)
+    all_sprites.add(coin19)
+    coin20 = Coin(950,100)
+    all_sprites.add(coin20)
+    coin21 = Coin(830,100)
+    all_sprites.add(coin21)
+    coin22 = Coin(850,180)
+    all_sprites.add(coin22)
+    coin_sprites.add(coin1)
+    coin_sprites.add(coin2)
+    coin_sprites.add(coin3)
+    coin_sprites.add(coin4)
+    coin_sprites.add(coin5)
+    coin_sprites.add(coin6)
+    coin_sprites.add(coin7)
+    coin_sprites.add(coin8)
+    coin_sprites.add(coin9)
+    coin_sprites.add(coin10)
+    coin_sprites.add(coin11)
+    coin_sprites.add(coin12)
+    coin_sprites.add(coin13)
+    coin_sprites.add(coin14)
+    coin_sprites.add(coin15)
+    coin_sprites.add(coin16)
+    coin_sprites.add(coin17)
+    coin_sprites.add(coin18)
+    coin_sprites.add(coin19)
+    coin_sprites.add(coin20)
+    coin_sprites.add(coin21)
+    coin_sprites.add(coin22)
+
+AddCoin()
+
+def killCoin():
+    for item in coin_sprites:
+        item.kill()
 
 #move_up_sound = pygame.mixer.Sound("ao.ogg")
 #move_down_sound = pygame.mixer.Sound("ao.ogg")
