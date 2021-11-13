@@ -322,7 +322,7 @@ def message_display(text, xpos, ypos):
     TextRect.center = (xpos,ypos)
     screen.blit(TextSurf, TextRect)
 
-    pygame.display.flip()
+
 
 
 
