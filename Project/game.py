@@ -4,6 +4,9 @@ import random
 
 import os
 
+import sys
+
+
 from pygame.locals import (
     RLEACCEL,
     K_UP,
@@ -26,6 +29,7 @@ from pygame.sprite import spritecollide
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
+
 PLAYER_MOVE_SPEED = 8
 
 dirname = os.path.dirname(__file__)
@@ -45,6 +49,7 @@ class Player(pygame.sprite.Sprite):
     def update(self, pressed_keys, possibleCollisionSprites):
         self.moving = False
         
+
         if pressed_keys[self.controlDict["jump"]] and self.touchingPlatform:
             self.dy = -20
         if pressed_keys[self.controlDict["down"]]:
@@ -80,7 +85,7 @@ class Player(pygame.sprite.Sprite):
             self.score += 1
             coin.kill()
             print(self.score)
-        
+
         self.dy += 1
 
         self.collidedCharacter = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
@@ -305,6 +310,21 @@ def killCoin():
 #move_up_sound.set_volume(1)
 #move_down_sound.set_volume(1)
 
+
+def text_objects(text, font):
+    textSurface = font.render(text, True, (0,0,0))
+    return textSurface, textSurface.get_rect()
+
+def message_display(text, xpos, ypos):
+    largeText = pygame.font.Font('freesansbold.ttf',20)
+    TextSurf, TextRect = text_objects(text, largeText)
+    TextRect.center = (xpos,ypos)
+    screen.blit(TextSurf, TextRect)
+
+
+
+
+
 running = True
 
 
@@ -323,12 +343,15 @@ while running:
     player1.update(pressed_keys, solid_sprites)
     player2.update(pressed_keys, solid_sprites)
 
+    
+
     screen.fill((200, 200, 200))
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
     
-
+    message_display("Player1 Score: " +str(player1.score), 100, 50)
+    message_display("Player2 Score: " +str(player2.score), 1180, 50)
     pygame.display.flip()
 
     clock.tick(60)
