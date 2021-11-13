@@ -4,8 +4,8 @@ import random
 
 import os
 
-import turtle
 import sys
+
 
 from pygame.locals import (
     RLEACCEL,
@@ -49,7 +49,7 @@ class Player(pygame.sprite.Sprite):
     def update(self, pressed_keys, possibleCollisionSprites):
         self.moving = False
         
-    
+
         if pressed_keys[self.controlDict["jump"]] and self.touchingPlatform:
             self.dy = -20
         if pressed_keys[self.controlDict["down"]]:
@@ -85,8 +85,7 @@ class Player(pygame.sprite.Sprite):
             self.score += 1
             coin.kill()
             print(self.score)
-            
-            
+
         self.dy += 1
 
         self.collidedCharacter = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
