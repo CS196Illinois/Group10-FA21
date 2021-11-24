@@ -21,6 +21,8 @@ from pygame.locals import (
     K_a,
     K_s,
     K_d,
+    K_f,
+    K_p
     
 
 )
@@ -44,12 +46,16 @@ class Player(pygame.sprite.Sprite):
         self.touchingPlatform = False
         self.score = 0
         self.controlDict = controlDict
+        self.power = False
+        self.bulletNumber = 1.0
+        self.lastKey = True
                 
 
     def update(self, pressed_keys, possibleCollisionSprites):
         self.moving = False
         
-
+        if self.bulletNumber < 0.5*self.score + 1:
+            self.bulletNumber += 0.005*self.score + 0.005
         if pressed_keys[self.controlDict["jump"]] and self.touchingPlatform:
             self.dy = -20
         if pressed_keys[self.controlDict["down"]]:
@@ -62,6 +68,7 @@ class Player(pygame.sprite.Sprite):
                     self.dx -= 2
                 else:
                     self.dx -= 1
+            self.lastKey = False
         if pressed_keys[self.controlDict["right"]]:
             self.moving = True
             if self.dx < PLAYER_MOVE_SPEED:
@@ -69,7 +76,16 @@ class Player(pygame.sprite.Sprite):
                     self.dx += 2
                 else:
                     self.dx += 1
+            self.lastKey = True
         #resets character position for demo
+        if pressed_keys[self.controlDict["power"]]:
+            if self.bulletNumber > 1 :
+                if self.lastKey == True:
+                    AddBullet(self.rect[0] + 20, self.rect[1])
+                    self.bulletNumber -= 1
+                if self.lastKey == False:
+                    AddLeftBullet(self.rect[0] - 20, self.rect[1])
+                    self.bulletNumber -= 1
         if pressed_keys[K_SPACE]:
             self.dx = 0
             self.dy = 0
@@ -86,6 +102,22 @@ class Player(pygame.sprite.Sprite):
             coin.kill()
             print(self.score)
 
+        for power in pygame.sprite.spritecollide(self, power_sprites, True, collided = None):
+            self.power = True
+            power.kill()
+            print(self.power)
+
+        for bullet in pygame.sprite.spritecollide(self, bullet_sprites, True, collided = None):
+            self.dx += 30
+            bullet.kill()
+            print("success")
+
+        for leftBullet in pygame.sprite.spritecollide(self, leftBullet_sprites, True, collided = None):
+            self.dx -= 30
+            leftBullet.kill()
+            print("success")
+        
+        
         self.dy += 1
 
         self.collidedCharacter = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
@@ -141,7 +173,47 @@ class Coin(pygame.sprite.Sprite):
         )
         pygame.draw.circle(self.surf, (255,255,0), (15, 15), 15)
 
+class Power(pygame.sprite.Sprite):
+    def __init__(self, xPos, yPos):
+        super(Power, self).__init__()
+        self.surf = pygame.Surface((30,30))
+        self.surf.set_colorkey((0,0,0))
+        self.rect = self.surf.get_rect(
+            left = xPos,
+            top = yPos
+        )
+        pygame.draw.circle(self.surf, (255,100,30), (15, 15), 10)
 
+class Bullet(pygame.sprite.Sprite):
+
+    def __init__(self, xPos, yPos):
+        super(Bullet, self).__init__()
+        self.surf = pygame.Surface((30,30))
+        self.surf.set_colorkey((0,0,0))
+        self.rect = self.surf.get_rect(
+            left = xPos,
+            top = yPos
+        )
+        pygame.draw.circle(self.surf, (25,150,30), (20, 20), 5)
+
+    def update(self):
+        self.rect[0] += 20
+
+class LeftBullet(pygame.sprite.Sprite):
+
+    def __init__(self, xPos, yPos):
+        super(LeftBullet, self).__init__()
+        self.surf = pygame.Surface((30,30))
+        self.surf.set_colorkey((0,0,0))
+        self.rect = self.surf.get_rect(
+            left = xPos,
+            top = yPos
+        )
+        pygame.draw.circle(self.surf, (25,150,30), (20, 20), 5)
+
+    def update(self):
+        self.rect[0] -= 20
+    
 class Platform(pygame.sprite.Sprite):
    def __init__(self, xPos, yPos, xSize, ySize):
         super(Platform, self).__init__()
@@ -154,6 +226,7 @@ class Platform(pygame.sprite.Sprite):
         pygame.draw.rect(self.surf, (168, 17, 0), pygame.Rect(2, 2, self.rect.width - 4, self.rect.height - 4))
         for i in range(8, self.rect.height - 2, 15):
             pygame.draw.rect(self.surf, (87, 9, 0), pygame.Rect(2, i, self.rect.width - 4, 5))
+    
 
 # helper function that creates a new platform and adds it to the needed sprite groups
 def newPlatform(xPos, yPos, xSize, ySize):
@@ -177,13 +250,15 @@ p1ControlDict = {
     "jump": K_w,
     "left": K_a,
     "down": K_s,
-    "right": K_d
+    "right": K_d,
+    "power": K_f
 }
 p2ControlDict = {
     "jump": K_UP,
     "left": K_LEFT,
     "down": K_DOWN,
-    "right": K_RIGHT
+    "right": K_RIGHT,
+    "power": K_p
 }
 
 player1 = Player(50, 50, p1ControlDict)
@@ -229,6 +304,9 @@ newPlatform(810, 140, pw * 4, pw)
 # this part of code is not elegent, but I do not know how to make it better...
 # later, replace this with some way to randomly generate coins
 coin_sprites = pygame.sprite.Group()
+power_sprites = pygame.sprite.Group()
+bullet_sprites = pygame.sprite.Group()
+leftBullet_sprites = pygame.sprite.Group()
 def AddCoin():
     coin1 = Coin(190,460)
     all_sprites.add(coin1)
@@ -273,7 +351,7 @@ def AddCoin():
     all_sprites.add(coin20)
     coin21 = Coin(830,100)
     all_sprites.add(coin21)
-    coin22 = Coin(850,180)
+    coin22 = Coin(870,200)
     all_sprites.add(coin22)
     coin_sprites.add(coin1)
     coin_sprites.add(coin2)
@@ -298,7 +376,25 @@ def AddCoin():
     coin_sprites.add(coin21)
     coin_sprites.add(coin22)
 
+def AddPower():
+    power1 = Power(250,460)
+    all_sprites.add(power1)
+    power_sprites.add(power1)
+
+def AddBullet(dx, dy):
+    bullet1 = Bullet(dx,dy)
+    all_sprites.add(bullet1)
+    bullet_sprites.add(bullet1)
+    bullet1.update()
+
+def AddLeftBullet(dx, dy):
+    bullet1 = LeftBullet(dx,dy)
+    all_sprites.add(bullet1)
+    leftBullet_sprites.add(bullet1)
+    bullet1.update()
+
 AddCoin()
+AddPower()
 
 def killCoin():
     for item in coin_sprites:
@@ -342,8 +438,10 @@ while running:
 
     player1.update(pressed_keys, solid_sprites)
     player2.update(pressed_keys, solid_sprites)
+    bullet_sprites.update()
+    leftBullet_sprites.update()
+    platform_sprites.update()
 
-    
 
     screen.fill((200, 200, 200))
 
