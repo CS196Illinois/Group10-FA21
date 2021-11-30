@@ -46,21 +46,17 @@ class Player(pygame.sprite.Sprite):
         self.touchingPlatform = False
         self.score = 0
         self.controlDict = controlDict
-        self.power = False
-        self.bulletNumber = 1.0
-        self.lastKey = True
+        self.power = "none"
+        self.facingRight = True
                 
 
-    def update(self, pressed_keys, possibleCollisionSprites):
+    def update(self, pressed_keys):
         self.moving = False
         
-        if self.bulletNumber < 0.3*self.score + 1:
-            self.bulletNumber += 0.001*self.score + 0.005
         if pressed_keys[self.controlDict["jump"]] and self.touchingPlatform:
             self.dy = -20
-        if pressed_keys[self.controlDict["down"]]:
-            #debug float, replace with groundpound later
-            self.dy = 5
+        #if pressed_keys[self.controlDict["down"]]:
+            #Make this a groundpound or something
         if pressed_keys[self.controlDict["left"]]:
             self.moving = True
             if self.dx > PLAYER_MOVE_SPEED * -1:
@@ -68,7 +64,7 @@ class Player(pygame.sprite.Sprite):
                     self.dx -= 2
                 else:
                     self.dx -= 1
-            self.lastKey = False
+            self.facingRight = False
         if pressed_keys[self.controlDict["right"]]:
             self.moving = True
             if self.dx < PLAYER_MOVE_SPEED:
@@ -76,23 +72,17 @@ class Player(pygame.sprite.Sprite):
                     self.dx += 2
                 else:
                     self.dx += 1
-            self.lastKey = True
+            self.facingRight = True
         #resets character position for demo
         if pressed_keys[self.controlDict["power"]]:
-            if self.bulletNumber > 1 :
-                if self.lastKey == True:
-                    AddBullet(self.rect[0] + 20, self.rect[1])
-                    self.bulletNumber -= 1
-                if self.lastKey == False:
-                    AddLeftBullet(self.rect[0] - 20, self.rect[1])
-                    self.bulletNumber -= 1
-        if pressed_keys[K_SPACE]:
-            self.dx = 0
-            self.dy = 0
-            self.rect.center = (0,0)
-            self.score = 0
-            killCoin()
-            AddCoin()
+            if self.power == "bullet" :
+                if self.facingRight == True:
+                    bullet = Bullet(self.rect[0] + 30, self.rect[1], 20)
+                if self.facingRight == False:
+                    bullet = Bullet(self.rect[0] - 30, self.rect[1], -20)
+                all_sprites.add(bullet)
+                bullet_sprites.add(bullet)
+                self.power = "none"
         #deceleration/friction
         if self.touchingPlatform and not self.moving:
             self.dx = 0
@@ -103,30 +93,26 @@ class Player(pygame.sprite.Sprite):
             print(self.score)
 
         for power in pygame.sprite.spritecollide(self, power_sprites, True, collided = None):
-            self.power = True
+            self.power = power.power
             power.kill()
             print(self.power)
 
         for bullet in pygame.sprite.spritecollide(self, bullet_sprites, True, collided = None):
-            self.dx += 25
+            self.dx += bullet.speed * 1.5
+            self.dy -= 25
             bullet.kill()
-            print("success")
-
-        for leftBullet in pygame.sprite.spritecollide(self, leftBullet_sprites, True, collided = None):
-            self.dx -= 25
-            leftBullet.kill()
             print("success")
         
         
         self.dy += 1
 
-        self.collidedCharacter = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
+        self.collidedCharacter = pygame.sprite.spritecollide(self, solid_sprites, False)
 
         # cool collision detection below here
         self.oldrect = self.rect.copy()
         #steps forward one tick of movement and sees if there is a collision then
         self.rect.move_ip(self.dx,self.dy)
-        self.collidedList = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
+        self.collidedList = pygame.sprite.spritecollide(self, solid_sprites, False)
         self.collidedList.remove(self) #prevent the player from colliding with itself
         self.touchingPlatform = False
 
@@ -174,7 +160,7 @@ class Coin(pygame.sprite.Sprite):
         pygame.draw.circle(self.surf, (255,255,0), (15, 15), 15)
 
 class Power(pygame.sprite.Sprite):
-    def __init__(self, xPos, yPos):
+    def __init__(self, xPos, yPos, power):
         super(Power, self).__init__()
         self.surf = pygame.Surface((30,30))
         self.surf.set_colorkey((0,0,0))
@@ -183,10 +169,11 @@ class Power(pygame.sprite.Sprite):
             top = yPos
         )
         pygame.draw.circle(self.surf, (255,100,30), (15, 15), 10)
+        self.power = power
 
 class Bullet(pygame.sprite.Sprite):
 
-    def __init__(self, xPos, yPos):
+    def __init__(self, xPos, yPos, speed):
         super(Bullet, self).__init__()
         self.surf = pygame.Surface((30,30))
         self.surf.set_colorkey((0,0,0))
@@ -195,24 +182,11 @@ class Bullet(pygame.sprite.Sprite):
             top = yPos
         )
         pygame.draw.circle(self.surf, (25,150,30), (20, 20), 5)
+        self.speed = speed
 
     def update(self):
-        self.rect[0] += 20
+        self.rect[0] += self.speed
 
-class LeftBullet(pygame.sprite.Sprite):
-
-    def __init__(self, xPos, yPos):
-        super(LeftBullet, self).__init__()
-        self.surf = pygame.Surface((30,30))
-        self.surf.set_colorkey((0,0,0))
-        self.rect = self.surf.get_rect(
-            left = xPos,
-            top = yPos
-        )
-        pygame.draw.circle(self.surf, (25,150,30), (20, 20), 5)
-
-    def update(self):
-        self.rect[0] -= 20
 
     
 class Platform(pygame.sprite.Sprite):
@@ -228,11 +202,9 @@ class Platform(pygame.sprite.Sprite):
         for i in range(8, self.rect.height - 2, 15):
             pygame.draw.rect(self.surf, (87, 9, 0), pygame.Rect(2, i, self.rect.width - 4, 5))    
     
-    def update(self, pressed_keys, possibleCollisionSprites):
-        for bullet in pygame.sprite.spritecollide(self, bullet_sprites, True, collided = None):
-            print("success")
-        for leftbullet in pygame.sprite.spritecollide(self, leftBullet_sprites, True, collided = None):
-            print("success")
+    def update(self, pressed_keys):
+        pygame.sprite.spritecollide(self, bullet_sprites, True, collided = None)
+            
 
 # helper function that creates a new platform and adds it to the needed sprite groups
 def newPlatform(xPos, yPos, xSize, ySize):
@@ -312,8 +284,6 @@ newPlatform(810, 140, pw * 4, pw)
 coin_sprites = pygame.sprite.Group()
 power_sprites = pygame.sprite.Group()
 bullet_sprites = pygame.sprite.Group()
-leftBullet_sprites = pygame.sprite.Group()
-platform_sprites = pygame.sprite.Group()
 def AddCoin():
     coin1 = Coin(190,460)
     all_sprites.add(coin1)
@@ -383,25 +353,12 @@ def AddCoin():
     coin_sprites.add(coin21)
     coin_sprites.add(coin22)
 
-def AddPower():
-    power1 = Power(250,460)
-    all_sprites.add(power1)
-    power_sprites.add(power1)
 
-def AddBullet(dx, dy):
-    bullet1 = Bullet(dx,dy)
-    all_sprites.add(bullet1)
-    bullet_sprites.add(bullet1)
-    bullet1.update()
-
-def AddLeftBullet(dx, dy):
-    bullet1 = LeftBullet(dx,dy)
-    all_sprites.add(bullet1)
-    leftBullet_sprites.add(bullet1)
-    bullet1.update()
+power1 = Power(250,460, "bullet")
+all_sprites.add(power1)
+power_sprites.add(power1)
 
 AddCoin()
-AddPower()
 
 def killCoin():
     for item in coin_sprites:
@@ -443,11 +400,8 @@ while running:
 
     pressed_keys = pygame.key.get_pressed()
 
-    player1.update(pressed_keys, solid_sprites)
-    player2.update(pressed_keys, solid_sprites)
     bullet_sprites.update()
-    leftBullet_sprites.update()
-    solid_sprites.update(pressed_keys, solid_sprites)
+    solid_sprites.update(pressed_keys)
 
 
     screen.fill((200, 200, 200))
