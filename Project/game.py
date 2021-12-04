@@ -90,7 +90,7 @@ class Player(pygame.sprite.Sprite):
         
         if self.rect.centery > SCREEN_HEIGHT + 400:
             self.rect.center = self.start
-            self.score -= 10
+            self.score = max((0, self.score - 10))
             self.dx, self.dy = 0, 0
 
         for coin in pygame.sprite.spritecollide(self, coin_sprites, True, collided = None):
@@ -105,7 +105,7 @@ class Player(pygame.sprite.Sprite):
         for bullet in pygame.sprite.spritecollide(self, bullet_sprites, True):
             self.dx += bullet.speed * .7
             self.dy -= 12
-            self.score -= 5
+            self.score = max((0, self.score - 10))
             bullet.kill()
  
         self.dy += .25
