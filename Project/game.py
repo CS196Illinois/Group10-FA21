@@ -325,7 +325,7 @@ def message_display(text, xpos, ypos,size):
 
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 100)
-counter = 3
+counter = 60
 text = font.render(str(counter), True, (0, 128, 0))
 timer_event = pygame.USEREVENT + 1
 pygame.time.set_timer(timer_event, 1000)
