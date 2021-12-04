@@ -4,8 +4,8 @@ import random
 
 import os
 
+import turtle
 import sys
-
 
 from pygame.locals import (
     RLEACCEL,
@@ -49,7 +49,7 @@ class Player(pygame.sprite.Sprite):
     def update(self, pressed_keys, possibleCollisionSprites):
         self.moving = False
         
-
+    
         if pressed_keys[self.controlDict["jump"]] and self.touchingPlatform:
             self.dy = -20
         if pressed_keys[self.controlDict["down"]]:
@@ -85,7 +85,8 @@ class Player(pygame.sprite.Sprite):
             self.score += 1
             coin.kill()
             print(self.score)
-
+            
+            
         self.dy += 1
 
         self.collidedCharacter = pygame.sprite.spritecollide(self, possibleCollisionSprites, False)
@@ -315,13 +316,19 @@ def text_objects(text, font):
     textSurface = font.render(text, True, (0,0,0))
     return textSurface, textSurface.get_rect()
 
-def message_display(text, xpos, ypos):
-    largeText = pygame.font.Font('freesansbold.ttf',20)
+def message_display(text, xpos, ypos,size):
+    largeText = pygame.font.Font('freesansbold.ttf',size)
     TextSurf, TextRect = text_objects(text, largeText)
     TextRect.center = (xpos,ypos)
     screen.blit(TextSurf, TextRect)
 
 
+clock = pygame.time.Clock()
+font = pygame.font.SysFont(None, 100)
+counter = 60
+text = font.render(str(counter), True, (0, 128, 0))
+timer_event = pygame.USEREVENT + 1
+pygame.time.set_timer(timer_event, 1000)
 
 
 
@@ -336,6 +343,14 @@ while running:
 
         elif event.type == QUIT:
             running = False
+        elif event.type == timer_event:
+            counter -=1 
+
+        if counter == 0:
+            running = False
+        
+
+        
 
 
     pressed_keys = pygame.key.get_pressed()
@@ -350,8 +365,31 @@ while running:
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
     
-    message_display("Player1 Score: " +str(player1.score), 100, 50)
-    message_display("Player2 Score: " +str(player2.score), 1180, 50)
+    message_display("Player1 Score: " +str(player1.score), 100, 50,20)
+    message_display("Player2 Score: " +str(player2.score), 1180, 50,20)
+    message_display("Player1 Item: ", 100, 100,20)
+    message_display("Player2 Item: ", 1180, 100,20)
+    
+    message_display("Time : " + str(counter), 640, 50,20)
     pygame.display.flip()
 
-    clock.tick(60)
+    clock.tick(60) 
+
+
+
+message_display("Game Over", 640, 350,50)
+if (player1.score > player2.score):
+    message_display("PLAYER ONE WIN!", 640, 400,30)
+elif (player1.score > player2.score):
+    message_display("PLAYER TWO WIN!", 640, 400,30)
+else :
+    message_display("TIE!", 640, 400,30)
+
+running2 = True
+while running2:
+    for event in pygame.event.get():
+        if event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                running2 = False
+    pygame.display.flip()
+    clock.tick(30)
