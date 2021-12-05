@@ -32,6 +32,7 @@ SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 coinSpawnEvent = 0 + pygame.USEREVENT
 powerSpawnEvent = 1 + pygame.USEREVENT
+timer_event = 2 + pygame.USEREVENT
 
 PLAYER_MOVE_SPEED = 4
 
@@ -100,8 +101,7 @@ class Player(pygame.sprite.Sprite):
         for power in pygame.sprite.spritecollide(self, power_sprites, True):
             self.power = power.power
             power.kill()
-            print("touched power")
-
+        
         for bullet in pygame.sprite.spritecollide(self, bullet_sprites, True):
             self.dx += bullet.speed * .7
             self.dy -= 12
@@ -223,9 +223,9 @@ def newRandomSpawn(Type):
     newItem = Type(platform.rect.left + ((platform.rect.width-Type.width) * (pos - int(pos))), platform.rect.top - 40)
     if not spritecollide(newItem, all_sprites, False):
         if (Type == Power):
+            print("power spawned")
             newItem.power = "bullet"
             power_sprites.add(newItem)
-            print("power spawned")
         else:
             coin_sprites.add(newItem)
         all_sprites.add(newItem)
@@ -235,8 +235,8 @@ def text_objects(text, font):
     textSurface = font.render(text, True, (0,0,0))
     return textSurface, textSurface.get_rect()
 
-def message_display(text, xpos, ypos):
-    largeText = pygame.font.Font('freesansbold.ttf',20)
+def message_display(text, xpos, ypos, size):
+    largeText = pygame.font.Font('freesansbold.ttf',size)
     TextSurf, TextRect = text_objects(text, largeText)
     TextRect.center = (xpos,ypos)
     screen.blit(TextSurf, TextRect)   
@@ -309,7 +309,14 @@ newPlatform(810, 140, pw * 4, pw)
 for i in range(20):
     newRandomSpawn(Coin)
 pygame.time.set_timer(coinSpawnEvent, 200)
-pygame.time.set_timer(powerSpawnEvent, 1)
+pygame.time.set_timer(powerSpawnEvent, 20)
+pygame.time.set_timer(timer_event, 1000)
+
+font = pygame.font.SysFont(None, 100)
+counter = 60
+# text = font.render(str(counter), True, (0, 128, 0))
+
+
 
 running = True
 
@@ -325,7 +332,11 @@ while running:
             pygame.time.set_timer(coinSpawnEvent, random.randint(200, 400))
         if event.type == powerSpawnEvent:
             newRandomSpawn(Power)
-            pygame.time.set_timer(powerSpawnEvent, random.randint(16000, 30000))
+            pygame.time.set_timer(powerSpawnEvent, random.randint(10000, 15000))
+        if event.type == timer_event:
+            counter -= 1
+    if counter == 0:
+        running = False
 
 
     pressed_keys = pygame.key.get_pressed()
@@ -338,11 +349,29 @@ while running:
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
     
-    message_display("Player1 Score: " +str(player1.score), 100, 50)
-    message_display("Power: " + player1.power, 100, 100)
+    message_display("Player1 Score: " +str(player1.score), 100, 50, 20)
+    message_display("Power: " + player1.power, 100, 100, 20)
 
-    message_display("Player2 Score: " +str(player2.score), 1180, 50)
-    message_display("Power: " + player2.power, 1180, 100)
+    message_display("Player2 Score: " +str(player2.score), 1180, 50, 20)
+    message_display("Power: " + player2.power, 1180, 100, 20)
+
+    message_display("Time : " + str(counter), 640, 50,20)
     pygame.display.flip()
 
     clock.tick(60)
+
+message_display("Game Over", 640, 350,50)
+if (player1.score > player2.score):
+    message_display("PLAYER ONE WINS!", 640, 400,30)
+elif (player1.score < player2.score):
+    message_display("PLAYER TWO WINS!", 640, 400,30)
+else :
+    message_display("TIE!", 640, 400,30)
+running2 = True
+while running2:
+    for event in pygame.event.get():
+        if event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                running2 = False
+    pygame.display.flip()
+    clock.tick(30) 
