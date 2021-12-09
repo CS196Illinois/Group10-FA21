@@ -309,7 +309,7 @@ newPlatform(810, 140, pw * 4, pw)
 for i in range(20):
     newRandomSpawn(Coin)
 pygame.time.set_timer(coinSpawnEvent, 200)
-pygame.time.set_timer(powerSpawnEvent, 20)
+pygame.time.set_timer(powerSpawnEvent, 400)
 pygame.time.set_timer(timer_event, 1000)
 
 font = pygame.font.SysFont(None, 100)
